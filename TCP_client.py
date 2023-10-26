@@ -15,6 +15,8 @@ def main():
             client.send(message.encode())
             response = client.recv(1024)
             print(f"Server Response: {response.decode()}")
+            client.close()
+            break
 
     except ConnectionRefusedError:
         print("Failed to connect to the server. Make sure the server is running and check the IP and port.")
