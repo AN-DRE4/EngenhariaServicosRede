@@ -1,14 +1,24 @@
 import socket
 
 def main():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(("127.0.0.1", 8888))
+    server_ip = input("Enter the server's IP address: ")
+    server_port = 8888  # You can change the port if needed
 
-    while True:
-        message = input("Enter a message: ")
-        client.send(message.encode())
-        response = client.recv(1024)
-        print(f"Server Response: {response.decode()}")
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((server_ip, server_port))
+        print(f"Connected to {server_ip}:{server_port}")
+
+        while True:
+            message = input("Enter a message: ")
+            client.send(message.encode())
+            response = client.recv(1024)
+            print(f"Server Response: {response.decode()}")
+
+    except ConnectionRefusedError:
+        print("Failed to connect to the server. Make sure the server is running and check the IP and port.")
+    finally:
+        client.close()
 
 if __name__ == "__main__":
     main()
