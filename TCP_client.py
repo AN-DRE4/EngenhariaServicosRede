@@ -10,7 +10,8 @@ def main():
         print(f"Connected to {server_ip}:{server_port}")
 
         while True:
-            message = input("Enter a message: ")
+            # send client's ip address to server
+            message = socket.gethostbyname(socket.gethostname())
             client.send(message.encode())
             response = client.recv(1024)
             print(f"Server Response: {response.decode()}")
