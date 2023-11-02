@@ -11,7 +11,7 @@ def main():
 
         while True:
             # send client's ip address to server
-            message = socket.gethostbyname(socket.gethostname())
+            message = client.getsockname()[0]
             client.send(message.encode())
             response = client.recv(1024)
             print(f"Server Response: {response.decode()}")
@@ -25,3 +25,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
