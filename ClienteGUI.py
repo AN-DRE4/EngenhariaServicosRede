@@ -1,9 +1,16 @@
 from tkinter import *
-import tkinter.messagebox
+
 from PIL import Image, ImageTk
 import socket, threading, sys, traceback, os
 
 from RtpPacket import RtpPacket
+
+
+
+
+from tkinter import messagebox
+from tkinter import messagebox
+
 
 CACHE_FILE_NAME = "cache-"
 CACHE_FILE_EXT = ".jpg"
@@ -17,6 +24,7 @@ class ClienteGUI:
 		self.createWidgets()
 		self.addr = addr
 		self.port = int(port)
+		self.rtpPort = 25000
 		self.rtspSeq = 0
 		self.sessionId = 0
 		self.requestSent = -1
@@ -120,21 +128,22 @@ class ClienteGUI:
 		"""Open RTP socket binded to a specified port."""
 		# Create a new datagram socket to receive RTP packets from the server
 		self.rtpSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		
+
 		# Set the timeout value of the socket to 0.5sec
 		self.rtpSocket.settimeout(0.5)
-		
+
 		try:
 			# Bind the socket to the address using the RTP port
-			self.rtpSocket.bind((self.addr, self.port))
+			self.rtpSocket.bind((self.addr, self.rtpPort))
 			print('\nBind \n')
 		except:
-			tkMessageBox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.rtpPort)
-
+			messagebox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.rtpPort)
+	
 	def handler(self):
 		"""Handler on explicitly closing the GUI window."""
 		self.pauseMovie()
-		if tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit?"):
+		if messagebox.askokcancel("Quit?", "Are you sure you want to quit?"):
+
 			self.exitClient()
 		else: # When the user presses cancel, resume playing.
 			self.playMovie()
