@@ -1,6 +1,8 @@
 from icecream import ic
+import sys
 import socket
 import threading
+import json
 
 def read_file_to_list(file_path):
     try:
@@ -16,15 +18,25 @@ def read_file_to_list(file_path):
         print(f"An error occurred: {str(e)}")
         return []
     
-def create_dict(lines):
+def read_json_file(file_path):
+    with open(file_path, 'r') as file:
+        json_data = json.load(file)
+    return json_data
+    
+def create_dict(data):
     config_dict = {}
-    for line in lines:
+    config_dict["Rp"] = list(data.values())[0]
+    config_dict["type"] = list(data.values())[2]
+    config_dict["port_tcp"] = 5000
+    config_dict["port_udp"] = 6000
+    '''for line in lines:
         # Split the line into key and value
         key, value = line.split(",")[0], line.split(",")[1:]
         # Strip leading and trailing whitespace from both key and value
         key = key.strip()
         # Add the key-value pair to the dictionary
-        config_dict[key] = value
+        config_dict[key] = value'''
+    config_dict["neighbors"] = list(data.values())[1]
     return config_dict
 
 def sendNeighbours(dic, client_ip):
@@ -50,21 +62,24 @@ def handle_client(client_socket, dicionario):
 
 def connectToClient(dic):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(("0.0.0.0", 8888))
+    server.bind(("0.0.0.0", 5000))
     server.listen(5)
-    print("Server listening on port 8888")
+    print("Server listening on port 5000")
 
     while True:
         client_socket, addr = server.accept()
+        dic["ip"] = addr
+        ic(dic)
+        '''message = client_socket.recv(1024).decode()
         print(f"Accepted connection from {addr[0]}:{addr[1]}")
-        client_handler = threading.Thread(target=handle_client, args=(client_socket, dic,))
-        client_handler.start()
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, dic))
+        client_handler.start()'''
 
 
 def main():
-    file_path = "config_file.txt"
-    lines = read_file_to_list(file_path)
-    dicionario = create_dict(lines)
+    file_path = sys.argv[1]
+    data = read_json_file(file_path)
+    dicionario = create_dict(data)
     connectToClient(dicionario)
 
 

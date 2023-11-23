@@ -65,11 +65,11 @@ class Servidor:
 			filename = "movie.Mjpeg"
 			print("Using default video file ->  " + filename)
 
-		# videoStram
+		# videoStream
 		self.clientInfo['videoStream'] = VideoStream(filename)
 		# socket
 		self.clientInfo['rtpPort'] = 25000
-		self.clientInfo['rtpAddr'] = socket.gethostbyname('127.0.0.1')
+		self.clientInfo['rtpAddr'] = socket.gethostbyname('10.0.1.20')
 		print("Sending to Addr:" + self.clientInfo['rtpAddr'] + ":" + str(self.clientInfo['rtpPort']))
 		# Create a new socket for RTP/UDP
 		self.clientInfo["rtpSocket"] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
