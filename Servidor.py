@@ -5,13 +5,20 @@ import sys, traceback, threading, socket
 
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
+from ClienteGUI import ClienteGUI
 
 class Servidor:	
 
 	clientInfo = {}
 	
-	def __init__(self, ip):
-		self.serveraddr = (ip, 25000)
+	def __init__(self):
+		self.ip = None
+		self.isRp = False
+		self.type = None
+		self.neighbours = None
+		self.rp_ip = ClienteGUI.connectBootstraper(self)
+		self.portTcp = 5000
+		self.serveraddr = (self.ip, 25000)
 	
 
 	def sendRtp(self):
@@ -79,11 +86,9 @@ class Servidor:
 		self.clientInfo["rtpSocket"] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.clientInfo['event'] = threading.Event()
 		self.clientInfo['worker']= threading.Thread(target=self.sendRtp)
-		self.clientInfo['worker'].start()
+		# the server connects to rp
+		
+		# self.clientInfo['worker'].start()
 
 if __name__ == "__main__":
-	ip = input("Digite o IP do servidor: ")
-	(Servidor(ip)).main()
-
-
-
+	(Servidor()).main()

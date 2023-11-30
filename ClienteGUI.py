@@ -5,11 +5,10 @@ import socket, threading, sys, traceback, os
 
 from RtpPacket import RtpPacket
 
-
-
-
 from tkinter import messagebox
 from tkinter import messagebox
+from icecream import ic
+from time import time
 
 
 CACHE_FILE_NAME = "cache-"
@@ -18,11 +17,12 @@ CACHE_FILE_EXT = ".jpg"
 class ClienteGUI:
 	
 	# Initiation..
-	def __init__(self, master, addr, port):
+	def __init__(self, master, port, serverIp):
 		self.master = master
+		self.serverIp = serverIp
 		self.master.protocol("WM_DELETE_WINDOW", self.handler)
 		self.createWidgets()
-		self.addr = addr
+		self.ip = None
 		self.port = int(port)
 		self.rtpPort = 25000
 		self.rtspSeq = 0
@@ -30,8 +30,31 @@ class ClienteGUI:
 		self.requestSent = -1
 		self.teardownAcked = 0
 		self.openRtpPort()
-		self.playMovie()
-		self.frameNbr = 0
+		self.isRp = False
+		self.type = None
+		self.neighbours = None
+		_ = self.connectBootstraper()
+		# self.playMovie()
+		# self.frameNbr = 0
+
+	def connectBootstraper(self):
+		# Connect to the bootstraper
+		bootstraper = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		bootstraper.connect((self.serverIp, 5000))
+		message = "connect"
+		bootstraper.send(message.encode())
+		# receive the neighbours
+		dict = bootstraper.recv(1024).decode()
+		# neighbours is a string, so we need to convert it to a dictionary
+		left, right, rp_ip = dict.split(";")
+		dict = eval(left)
+		self.isRp = dict["Rp"]
+		self.type = dict["type"]
+		self.neighbours = dict["neighbors"]
+		self.ip = right
+		bootstraper.close()
+		return rp_ip
+
 		
 	def createWidgets(self):
 		"""Build GUI."""
@@ -78,6 +101,8 @@ class ClienteGUI:
 	
 	def playMovie(self):
 		"""Play button handler."""
+		# send through udp to it's neighbours asking for the video
+		self.udp_handler("start")
 		# Create a new thread to listen for RTP packets
 		threading.Thread(target=self.listenRtp).start()
 		self.playEvent = threading.Event()
@@ -134,7 +159,7 @@ class ClienteGUI:
 
 		try:
 			# Bind the socket to the address using the RTP port
-			self.rtpSocket.bind((self.addr, self.rtpPort))
+			self.rtpSocket.bind((self.ip, self.rtpPort))
 			print('\nBind \n')
 		except:
 			messagebox.showwarning('Unable to Bind', 'Unable to bind PORT=%d' %self.rtpPort)
@@ -147,3 +172,16 @@ class ClienteGUI:
 			self.exitClient()
 		else: # When the user presses cancel, resume playing.
 			self.playMovie()
+
+	def udp_handler(self, request):
+		udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		udp.bind((self.ip, self.port))
+		udp.settimeout(0.5)
+		path = [self.ip]
+		request = request
+		# timestamp is the current time
+		timestamp = time()*1000
+		data = [path, request, timestamp]
+		# send the request to the neighbours
+		for neighbour in self.neighbours:
+			udp.sendto(str(data).encode(), (neighbour, self.port))

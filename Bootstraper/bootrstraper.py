@@ -1,4 +1,5 @@
 from icecream import ic
+import os
 import sys
 import socket
 import threading
@@ -23,21 +24,18 @@ def read_json_file(file_path):
         json_data = json.load(file)
     return json_data
     
-def create_dict(data):
+'''def create_dict(data):
     config_dict = {}
-    config_dict["Rp"] = list(data.values())[0]
-    config_dict["type"] = list(data.values())[2]
-    config_dict["port_tcp"] = 5000
-    config_dict["port_udp"] = 6000
-    '''for line in lines:
-        # Split the line into key and value
-        key, value = line.split(",")[0], line.split(",")[1:]
-        # Strip leading and trailing whitespace from both key and value
-        key = key.strip()
-        # Add the key-value pair to the dictionary
-        config_dict[key] = value'''
-    config_dict["neighbors"] = list(data.values())[1]
+    for key, value in data.items():
+        config_dict
+
+        config_dict["Rp"] = list(data.values())[0]
+        config_dict["neighbors"] = list(data.values())[1]
+        config_dict["type"] = list(data.values())[2]
+        config_dict["port_tcp"] = 5000
+        config_dict["port_udp"] = 6000
     return config_dict
+    # create a dict from the json file'''
 
 def sendNeighbours(dic, client_ip):
     for key, value in dic.items():
@@ -60,27 +58,53 @@ def handle_client(client_socket, dicionario):
         client_socket.send(vizinhos.encode())
     client_socket.close()
 
-def connectToClient(dic):
+def connectToClient(dic, rp_ip):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(("0.0.0.0", 5000))
+    server.bind(("10.0.4.1", 5000))
     server.listen(5)
     print("Server listening on port 5000")
 
     while True:
         client_socket, addr = server.accept()
-        dic["ip"] = addr
-        ic(dic)
+        message = client_socket.recv(1024).decode()
+        if message == "connect":
+            # dic["ip"] = 
+            ic(addr[0])
+            message = str(dic[addr[0]]) + ";" + addr[0] + f";{rp_ip}" if dic[addr[0]][2] == "server" else ""
+            ic(message)
+            client_socket.send(message.encode())
+        elif message == "get_servers":
+            servers = getAllServers(dic)
+            ic(servers)
+            client_socket.send(str(servers).encode())
+        else:
+            pass
         '''message = client_socket.recv(1024).decode()
         print(f"Accepted connection from {addr[0]}:{addr[1]}")
         client_handler = threading.Thread(target=handle_client, args=(client_socket, dic))
         client_handler.start()'''
 
+def getAllServers(dic):
+    servers = []
+    for key, value in dic.items():
+        if value['type'] == "server":
+            servers.append(key)
+    return servers
+
+
+def getRpIp(dic):
+    for key, value in dic.items():
+        if value['Rp'] == True:
+            return key
+
 
 def main():
-    file_path = sys.argv[1]
+    file_path = "config_file.json"
     data = read_json_file(file_path)
-    dicionario = create_dict(data)
-    connectToClient(dicionario)
+    rp_ip = getRpIp(data)
+    # dicionario = create_dict(data)
+    ic(data)
+    connectToClient(data, rp_ip)
 
 
 if __name__ == "__main__":
