@@ -9,6 +9,10 @@ from RtpPacket import RtpPacket
 class Servidor:	
 
 	clientInfo = {}
+	
+	def __init__(self, ip):
+		self.serveraddr = (ip, 25000)
+	
 
 	def sendRtp(self):
 		"""Send RTP packets over UDP."""
@@ -68,8 +72,8 @@ class Servidor:
 		# videoStream
 		self.clientInfo['videoStream'] = VideoStream(filename)
 		# socket
-		self.clientInfo['rtpPort'] = 25000
-		self.clientInfo['rtpAddr'] = socket.gethostbyname('10.0.1.20')
+		self.clientInfo['rtpPort'] = self.serveraddr[1]
+		self.clientInfo['rtpAddr'] = self.serveraddr[0]
 		print("Sending to Addr:" + self.clientInfo['rtpAddr'] + ":" + str(self.clientInfo['rtpPort']))
 		# Create a new socket for RTP/UDP
 		self.clientInfo["rtpSocket"] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -78,7 +82,8 @@ class Servidor:
 		self.clientInfo['worker'].start()
 
 if __name__ == "__main__":
-	(Servidor()).main()
+	ip = input("Digite o IP do servidor: ")
+	(Servidor(ip)).main()
 
 
 
